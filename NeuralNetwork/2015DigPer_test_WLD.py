@@ -1,8 +1,6 @@
-#Once cross validate 10 folds, test on test data which includes new spoofing techniques: Test_acc -> 0.98-0.99
-#Only set to train to 100 epochs
-#ace=1.38
-
-#without pca,90.08 8.62
+#By Stanley Gan, email:glgan@sfu.ca
+#Once cross validate 10 folds, test on test data which includes new spoofing techniques: Test_acc -> 0.98-0.99, ace=1.38
+#without pca,test_acc 90.08, ace 8.62
 
 import numpy as np
 import pandas as pd
@@ -10,12 +8,9 @@ import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
-from sklearn.model_selection import StratifiedKFold
-from sklearn.model_selection import cross_val_score
 from keras.models import Sequential, Model
 from keras.layers import Dense, Activation, Dropout, GaussianNoise
 from keras.optimizers import SGD, Adadelta
-from keras.engine.topology import Merge
 
 #Load features
 train_real_wld = pd.read_csv('./data/Data_2015_WLD_3_8_motion_Train_Real_DigPerson.txt',sep='\s+',header=None)
@@ -35,15 +30,15 @@ pca = PCA()
 
 #Concat real and fake training data, PCA fit it and label targets
 training_wld = pd.concat([train_real_wld,train_fake_wld])
-#training_wld = pca.fit_transform(training_wld)
-#training_wld = pd.DataFrame(training_wld)
+training_wld = pca.fit_transform(training_wld)
+training_wld = pd.DataFrame(training_wld)
 setTarg_train_wld = np.concatenate( (np.ones((numRealTrain,1)) , np.zeros((numFakeTrain,1)) ),axis=0)
 training_wld['target'] = setTarg_train_wld
 
 #concat real and fake test data, transform it with PCA for training data, label targets
 test_wld = pd.concat([test_real_wld, test_fake_wld])
-#test_wld = pca.transform(test_wld)
-#test_wld = pd.DataFrame(test_wld)
+test_wld = pca.transform(test_wld)
+test_wld = pd.DataFrame(test_wld)
 setTarg_test_wld = np.concatenate( (np.ones((numRealTest,1)) , np.zeros((numFakeTest,1)) ),axis=0)
 test_wld['target'] = setTarg_test_wld
 
@@ -83,9 +78,11 @@ opt = Adadelta()
 model.compile(loss='binary_crossentropy',optimizer=opt,metrics=['accuracy'])
 
 hist = model.fit(feature_train_wld, target_train_wld, nb_epoch=num_ep, batch_size=batchSize, verbose=2, validation_data=[feature_test_wld, target_test_wld], shuffle=True)
+#model.save_weights('2015DigPer_WLD.h5')
 
 #compute ACE
 #live=0 fake=1
+print("\nACE score\n")
 predicted = np.round(model.predict(feature_test_wld,batch_size=50,verbose=0))
 pred_target = pd.DataFrame(predicted,columns=['predicted'])
 pred_target['target']=target_test_wld

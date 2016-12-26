@@ -1,17 +1,14 @@
-#Once cross validate 10 folds, test on test data which includes new spoofing techniques: Test_acc -> 0.99-1
-#Only set to train to 100 epochs
-
-#ace = 1.17
-
-#without pca, test acc 94.32, ace 4.92
+"""
+By Stanley Gan, email:glgan@sfu.ca
+Once cross validate 10 folds, test on test data which includes new spoofing techniques: Test_acc -> 0.99-1
+1) with PCA test_acc 0.99-1, ace = 1.17
+2) without pca, test acc 94.32, ace 4.92"""
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
-from sklearn.model_selection import StratifiedKFold
-from sklearn.model_selection import cross_val_score
 from keras.models import Sequential, Model
 from keras.layers import Dense, Activation, Dropout, GaussianNoise
 from keras.optimizers import SGD, Adadelta
@@ -35,15 +32,15 @@ pca = PCA()
 
 #Concat real and fake training data, PCA fit it and label targets
 training_lpq = pd.concat([train_real_lpq,train_fake_lpq])
-#training_lpq = pca.fit_transform(training_lpq)
-#training_lpq = pd.DataFrame(training_lpq)
+training_lpq = pca.fit_transform(training_lpq)
+training_lpq = pd.DataFrame(training_lpq)
 setTarg_train_lpq = np.concatenate( (np.ones((numRealTrain,1)) , np.zeros((numFakeTrain,1)) ),axis=0)
 training_lpq['target'] = setTarg_train_lpq
 
 #concat real and fake test data, transform it with PCA for training data, label targets
 test_lpq = pd.concat([test_real_lpq, test_fake_lpq])
-#test_lpq = pca.transform(test_lpq)
-#test_lpq = pd.DataFrame(test_lpq)
+test_lpq = pca.transform(test_lpq)
+test_lpq = pd.DataFrame(test_lpq)
 setTarg_test_lpq = np.concatenate( (np.ones((numRealTest,1)) , np.zeros((numFakeTest,1)) ),axis=0)
 test_lpq['target'] = setTarg_test_lpq
 
@@ -83,9 +80,11 @@ opt = Adadelta()
 model.compile(loss='binary_crossentropy',optimizer=opt,metrics=['accuracy'])
 
 hist = model.fit(feature_train_lpq, target_train_lpq, nb_epoch=num_ep, batch_size=batchSize, verbose=2, validation_data=[feature_test_lpq, target_test_lpq], shuffle=True)
+#model.save_weights('2015DigPer_LPQ.h5')
 
 #compute ACE
 #live=0 fake=1
+print("\nACE score\n")
 predicted = np.round(model.predict(feature_test_lpq,batch_size=50,verbose=0))
 pred_target = pd.DataFrame(predicted,columns=['predicted'])
 pred_target['target']=target_test_lpq
