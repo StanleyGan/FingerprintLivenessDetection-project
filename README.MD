@@ -16,7 +16,7 @@
   + The result images are in [svm_2015_result](./SVM_classifiy/svm_2015_result)
 
 ## 3. Neural Network using Keras in python
-+ Simple Layer Network to classify the features:
++ Simple Layer Network to classify the features(Please refer to https://github.com/StanleyGan/Fingerprint-liveness-detection for more details on the models using BSIF, LPQ, WLD and MixFeat):
   + BSIF Features: [2015DigPer_test_BSIF.py](./NeuralNetwork/2015DigPer_test_BSIF.py)
   + LPQ Features: [2015DigPer_test_LPQ.py](./NeuralNetwork/2015DigPer_test_LPQ.py)
   + WLD Features: [2015DigPer_test_WLD.py](./NeuralNetwork/2015DigPer_test_WLD.py)
